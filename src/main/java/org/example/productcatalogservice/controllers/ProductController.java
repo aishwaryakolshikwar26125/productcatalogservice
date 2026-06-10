@@ -28,4 +28,8 @@ public class ProductController {
     public ProductDto createProduct(@RequestBody ProductDto input) {
         return input;
     }
+
+    public void sayHello(){
+
+    }
 }
