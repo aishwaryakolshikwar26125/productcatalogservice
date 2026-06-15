@@ -1,6 +1,7 @@
 package org.example.productcatalogservice.controllers;
 
 import org.example.productcatalogservice.dtos.CategoryDto;
+import org.example.productcatalogservice.dtos.FakeStoreProductDto;
 import org.example.productcatalogservice.dtos.ProductDto;
 import org.example.productcatalogservice.models.Category;
 import org.example.productcatalogservice.models.Product;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -20,8 +22,17 @@ public class ProductController {
     private IProductService productService;
 
     @GetMapping("/products")
-    public List<ProductDto> getAllProducts() {
-        return null;
+    public ResponseEntity<List<ProductDto>> getAllProducts() {
+        List<Product> products=productService.getAllProducts();
+        if(products.size()>0){
+            List<ProductDto> resposne=new ArrayList<>();
+            for(Product p:products){
+                ProductDto pd=from(p);
+                resposne.add(pd);
+            }
+            return new ResponseEntity<>(resposne,HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/products/{ID}")
@@ -46,9 +57,28 @@ public class ProductController {
         return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
 
     }
+//    @PostMapping
+//    ProductDto createProduct(@RequestBody
+//                             ProductDto productDto) {
+//
+//        //return productDto;
+//        Product input = from(productDto);
+//        Product product = productService.createProduct(input);
+//        if(product !=null) {
+//            return from(product);
+//        } else {
+//            throw new RuntimeException("creation failed as product existed already");
+//        }
+//    }
     @PostMapping("/products")
-    public ProductDto createProduct(@RequestBody ProductDto input) {
-        return input;
+    public ResponseEntity<ProductDto>  createProduct(@RequestBody ProductDto productDto) {
+       Product product= productService.createProduct(from(productDto));
+       if(product!=null){
+           return new ResponseEntity<>(from(product),HttpStatus.CREATED);
+
+       }
+
+        return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
     }
 
     private ProductDto from(Product product){

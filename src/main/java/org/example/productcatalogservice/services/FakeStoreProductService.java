@@ -5,6 +5,7 @@ import org.example.productcatalogservice.models.Category;
 import org.example.productcatalogservice.models.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -49,16 +51,37 @@ public class FakeStoreProductService implements IProductService{
         return null;
 
     }
-
-    @Override
-    public List<Product> getAllProducts() {
-        return List.of();
-    }
-
-    @Override
     public Product createProduct(Product product) {
+        ResponseEntity<FakeStoreProductDto> response= requestForEntity(HttpMethod.POST,"https://fakestoreapi.com/products"
+                ,from(product),FakeStoreProductDto.class);
+        if(response.hasBody() && response.getStatusCode().equals(HttpStatus.CREATED)){
+            return from(response.getBody());
+        }
         return null;
     }
+
+    @Override
+
+    public List<Product> getAllProducts() {
+        ResponseEntity<FakeStoreProductDto[]> fakeStoreProductDtoResponseEntity= requestForEntity(HttpMethod.GET,"https://fakestoreapi.com/products"
+                ,null,FakeStoreProductDto[].class);
+        if(fakeStoreProductDtoResponseEntity.hasBody() && fakeStoreProductDtoResponseEntity.getStatusCode().equals(HttpStatus.OK) ){
+            FakeStoreProductDto[] dtoArray=fakeStoreProductDtoResponseEntity.getBody();
+            List<Product> p=new ArrayList<>();
+
+            for(FakeStoreProductDto a:dtoArray){
+                Product product=from(a);
+                p.add(product);
+
+            }
+            return p;
+        }
+        return null;
+
+    }
+
+     //
+
 
     private Boolean isValidateFakeStoreResponse(ResponseEntity<FakeStoreProductDto>
                                                         fakeStoreProductDtoResponseEntity) {
@@ -72,6 +95,7 @@ public class FakeStoreProductService implements IProductService{
     private <T> ResponseEntity<T> requestForEntity(HttpMethod httpMethod,String url, @Nullable Object request,
                                                Class<T> responseType, Object... uriVariables) throws RestClientException {
         RestTemplate  restTemplate=restTemplateBuilder.build();
+        HttpHeaders heades=new HttpHeaders();
         RequestCallback requestCallback = restTemplate.httpEntityCallback(request, responseType);
         ResponseExtractor<ResponseEntity<T>> responseExtractor = restTemplate.responseEntityExtractor(responseType);
         return restTemplate.execute(url, httpMethod, requestCallback, responseExtractor, uriVariables);
