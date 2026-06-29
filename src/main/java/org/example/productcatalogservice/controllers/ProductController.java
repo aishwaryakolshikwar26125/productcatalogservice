@@ -37,15 +37,16 @@ public class ProductController {
 
     @GetMapping("/products/{ID}")
     public ResponseEntity<ProductDto> getProductById(@PathVariable("ID") Long productId) {
-        Product product=productService.getProductById(productId);
+
         if(productId<=0l){
-            return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+           // return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+            throw new IllegalArgumentException("please pass positive productID");
         }
+        Product product=productService.getProductById(productId);
         if(product!=null){
             ProductDto pd=from(product);
             return new ResponseEntity<>(pd, HttpStatus.OK);
         }
-
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
     @PutMapping("/products/{id}")
